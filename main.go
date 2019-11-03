@@ -5,11 +5,18 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
-	"os"
+
+	"github.com/TomOnTime/utfutil"
 )
 
 func main() {
-	csvFile, _ := os.Open("Play-1.txt")
+	fileName := "Play-1.txt" // File format is UTF 16 LE
+	//csvFile, _ := os.Open("Play-1.txt")
+	//data, err := ioutil.ReadFile(fileName)
+	csvFile, err := utfutil.OpenFile(fileName, utfutil.UTF16LE)
+	if err != nil {
+		log.Fatalln("Error on open utf16 file", err)
+	}
 	reader := csv.NewReader(bufio.NewReader(csvFile))
 	reader.Comma = '\t'
 	lineCount := 0
@@ -22,8 +29,8 @@ func main() {
 		}
 		//log.Println(line)
 		if lineCount == 0 {
-			for _, item := range line {
-				log.Println(item)
+			for i, item := range line {
+				log.Printf("[%d] %s", i, item)
 			}
 		} else {
 			break
