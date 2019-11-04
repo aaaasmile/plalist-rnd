@@ -11,7 +11,7 @@ func main() {
 	maxLines := 2
 	pl := playlist.PlaylistRnd{}
 	pl.ReadFile(fileName)
-	arr := []int{37, 38} // esporta proprio questi indici
+	arr := []int{36, 37} // esporta proprio questi indici
 	pl.SetFinalIx(arr)
 	pl.WriteFile("Randomized.txt", maxLines)
 

@@ -68,7 +68,7 @@ func (pl *PlaylistRnd) printAllComments() {
 	for i, mm := range pl.fieldDet {
 		com := mm["Kommentar"] // German filed title for comment (language is set inside itunes)
 		if com != "" {
-			log.Printf("Comment in [%d] is %q", i+1, com)
+			log.Printf("Comment in [%d] is %q", i, com)
 		}
 	}
 }
@@ -81,11 +81,13 @@ func (pl *PlaylistRnd) printFieldName() {
 }
 
 func (pl *PlaylistRnd) RemoveComments() {
+	// for _, md := range pl.fieldDet {
 
+	// }
 }
 
 func (pl *PlaylistRnd) SetFinalIx(arr []int) {
-	pl.finalIx = []int{0} // title field is always there
+	pl.finalIx = []int{}
 	for _, item := range arr {
 		pl.finalIx = append(pl.finalIx, item)
 	}
@@ -107,34 +109,46 @@ func (pl *PlaylistRnd) WriteFile(fileName string, maxLines int) {
 	bytes[0] = BOM >> 8
 	bytes[1] = BOM & 255
 
+	// write BOM
 	file.Write(bytes[0:])
 
-	strLineOut := ""
+	// write title
+	strLineOut := pl.buildOutLineString(0)
+	writeStringInUtf16LEFile(file, strLineOut)
+
+	// Write data song
 	count := 0
 	for i, lineIx := range pl.finalIx {
 		//fmt.Println(lineIx)
-		line := pl.outLines[lineIx]
-		strLineOut = ""
 		if i > maxLines && maxLines > 0 {
 			log.Printf("NOTE: output file cutted to %d lines", maxLines)
 			break
 		}
-		if i > 0 {
-			strLineOut = "\r\n"
-			count++
-		}
-		for j, data := range line {
-			if j > 0 {
-				strLineOut += "\t"
-			}
-			strLineOut += data
-		}
-		runes := utf16.Encode([]rune(strLineOut))
-		for _, r := range runes {
-			bytes[1] = byte(r >> 8)
-			bytes[0] = byte(r & 255)
-			file.Write(bytes[0:])
-		}
+		count++
+		strLineOut = "\r\n" + pl.buildOutLineString(lineIx+1)
+		writeStringInUtf16LEFile(file, strLineOut)
 	}
 	log.Printf("File created: %s with %d items", fileName, count)
+}
+
+func (pl *PlaylistRnd) buildOutLineString(lineIx int) string {
+	line := pl.outLines[lineIx]
+	strLineOut := ""
+	for j, data := range line {
+		if j > 0 {
+			strLineOut += "\t"
+		}
+		strLineOut += data
+	}
+	return strLineOut
+}
+
+func writeStringInUtf16LEFile(file *os.File, strLineOut string) {
+	var bytes [2]byte
+	runes := utf16.Encode([]rune(strLineOut))
+	for _, r := range runes {
+		bytes[1] = byte(r >> 8)
+		bytes[0] = byte(r & 255)
+		file.Write(bytes[0:])
+	}
 }
