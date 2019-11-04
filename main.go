@@ -5,14 +5,18 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
+	"os"
+	"unicode/utf16"
 
 	"github.com/TomOnTime/utfutil"
 )
 
-func main() {
-	fileName := "Play-1.txt" // File format is UTF 16 LE
-	//csvFile, _ := os.Open("Play-1.txt")
-	//data, err := ioutil.ReadFile(fileName)
+type PlaylistRnd struct {
+	outLines [][]string
+}
+
+func (pl *PlaylistRnd) ReadFile(fileName string) {
+	pl.outLines = [][]string{}
 	csvFile, err := utfutil.OpenFile(fileName, utfutil.UTF16LE)
 	if err != nil {
 		log.Fatalln("Error on open utf16 file", err)
@@ -33,9 +37,62 @@ func main() {
 				log.Printf("[%d] %s", i, item)
 			}
 		} else {
-			break
+			if lineCount > 3 {
+				break
+			}
 		}
+		pl.outLines = append(pl.outLines, line)
 		lineCount++
 	}
+	log.Printf("Recongnized %d songs", len(pl.outLines)-1)
+}
+
+func (pl *PlaylistRnd) WriteFile(fileName string) {
+	if len(pl.outLines) == 0 {
+		log.Fatalln("Original playlist is empty")
+	}
+	var bytes [2]byte
+	const BOM = '\ufffe' //LE. for BE '\ufeff'
+
+	file, err := os.Create(fileName)
+	if err != nil {
+		log.Fatalf("Can't open file. %v", err)
+	}
+	defer file.Close()
+
+	bytes[0] = BOM >> 8
+	bytes[1] = BOM & 255
+
+	file.Write(bytes[0:])
+
+	strLineOut := ""
+	for i, line := range pl.outLines {
+		strLineOut = ""
+		if i > 0 {
+			strLineOut = "\r\n"
+		}
+		for j, data := range line {
+			if j > 0 {
+				strLineOut += "\t"
+			}
+			strLineOut += data
+		}
+		runes := utf16.Encode([]rune(strLineOut))
+		for _, r := range runes {
+			bytes[1] = byte(r >> 8)
+			bytes[0] = byte(r & 255)
+			file.Write(bytes[0:])
+		}
+	}
+	log.Println("File created: ", fileName)
+}
+
+func main() {
+	fileName := "Play-1.txt" // File format is UTF 16 LE
+
+	pl := PlaylistRnd{}
+	pl.ReadFile(fileName)
+	pl.WriteFile("Randomized.txt")
+
 	log.Println("That's all folks!")
 }
