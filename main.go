@@ -12,13 +12,16 @@ import (
 )
 
 type PlaylistRnd struct {
-	outLines [][]string
-	finalIx  []int
+	outLines  [][]string
+	finalIx   []int
+	fieldDet  []map[string]string
+	fieldKeys []string
 }
 
 func (pl *PlaylistRnd) ReadFile(fileName string) {
 	pl.outLines = [][]string{}
 	pl.finalIx = []int{0}
+	pl.fieldDet = []map[string]string{}
 	csvFile, err := utfutil.OpenFile(fileName, utfutil.UTF16LE)
 	if err != nil {
 		log.Fatalln("Error on open utf16 file", err)
@@ -26,6 +29,7 @@ func (pl *PlaylistRnd) ReadFile(fileName string) {
 	reader := csv.NewReader(bufio.NewReader(csvFile))
 	reader.Comma = '\t'
 	lineCount := 0
+	pl.fieldKeys = []string{}
 	for {
 		line, error := reader.Read()
 		if error == io.EOF {
@@ -35,13 +39,19 @@ func (pl *PlaylistRnd) ReadFile(fileName string) {
 		}
 		//log.Println(line)
 		if lineCount == 0 {
-			for i, item := range line {
-				log.Printf("[%d] %s", i, item)
+			for _, item := range line {
+				pl.fieldKeys = append(pl.fieldKeys, item)
 			}
 		} else {
 			// if lineCount > 30 {
 			// 	break
 			// }
+			mmF := make(map[string]string)
+			for i, item := range line {
+				k := pl.fieldKeys[i]
+				mmF[k] = item
+			}
+			pl.fieldDet = append(pl.fieldDet, mmF)
 			pl.finalIx = append(pl.finalIx, lineCount)
 		}
 		pl.outLines = append(pl.outLines, line)
@@ -49,6 +59,25 @@ func (pl *PlaylistRnd) ReadFile(fileName string) {
 	}
 	// TODO: crea il pl.finalIx in modo random
 	log.Printf("Recongnized %d songs", len(pl.outLines)-1)
+	pl.printFieldName()
+	pl.printAllComments()
+}
+
+func (pl *PlaylistRnd) printAllComments() {
+	log.Println("Print comments")
+	for i, mm := range pl.fieldDet {
+		com := mm["Kommentar"]
+		if com != "" {
+			log.Printf("Komment in [%d] is %q", i, com)
+		}
+	}
+}
+
+func (pl *PlaylistRnd) printFieldName() {
+	log.Println("Field Name")
+	for i, item := range pl.fieldKeys {
+		log.Printf("[%d] %s", i, item)
+	}
 }
 
 func (pl *PlaylistRnd) WriteFile(fileName string) {
