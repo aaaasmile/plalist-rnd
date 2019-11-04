@@ -125,10 +125,23 @@ func (pl *PlaylistRnd) WriteFile(fileName string, maxLines int) {
 			break
 		}
 		count++
-		strLineOut = "\r\n" + pl.buildOutLineString(lineIx+1)
+		//strLineOut = "\r\n" + pl.buildOutLineString(lineIx+1)
+		strLineOut = "\r\n" + pl.buildOutLineStringFromMap(lineIx)
 		writeStringInUtf16LEFile(file, strLineOut)
 	}
 	log.Printf("File created: %s with %d items", fileName, count)
+}
+
+func (pl *PlaylistRnd) buildOutLineStringFromMap(lineIx int) string {
+	fields := pl.fieldDet[lineIx]
+	strLineOut := ""
+	for j, kk := range pl.fieldKeys {
+		if j > 0 {
+			strLineOut += "\t"
+		}
+		strLineOut += fields[kk]
+	}
+	return strLineOut
 }
 
 func (pl *PlaylistRnd) buildOutLineString(lineIx int) string {
