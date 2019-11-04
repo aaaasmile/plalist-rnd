@@ -5,7 +5,9 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 	"unicode/utf16"
 
 	"github.com/TomOnTime/utfutil"
@@ -105,6 +107,21 @@ func (pl *PlaylistRnd) SetFinalIx(arr []int) {
 	pl.finalIx = []int{}
 	for _, item := range arr {
 		pl.finalIx = append(pl.finalIx, item)
+	}
+}
+
+func (pl *PlaylistRnd) ShuffleFinalIx() {
+	log.Printf("Shuffle %d items", len(pl.finalIx))
+	shuffle(pl.finalIx)
+}
+
+func shuffle(vals []int) {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	for len(vals) > 0 {
+		n := len(vals)
+		randIndex := r.Intn(n)
+		vals[n-1], vals[randIndex] = vals[randIndex], vals[n-1]
+		vals = vals[:n-1]
 	}
 }
 
