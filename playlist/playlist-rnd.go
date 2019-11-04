@@ -80,6 +80,13 @@ func (pl *PlaylistRnd) printFieldName() {
 	}
 }
 
+func (pl *PlaylistRnd) SetFinalIx(arr []int) {
+	pl.finalIx = []int{0} // title field is always there
+	for _, item := range arr {
+		pl.finalIx = append(pl.finalIx, item)
+	}
+}
+
 func (pl *PlaylistRnd) WriteFile(fileName string, maxLines int) {
 	if len(pl.outLines) == 0 {
 		log.Fatalln("Original playlist is empty")
@@ -99,6 +106,7 @@ func (pl *PlaylistRnd) WriteFile(fileName string, maxLines int) {
 	file.Write(bytes[0:])
 
 	strLineOut := ""
+	count := 0
 	for i, lineIx := range pl.finalIx {
 		//fmt.Println(lineIx)
 		line := pl.outLines[lineIx]
@@ -109,6 +117,7 @@ func (pl *PlaylistRnd) WriteFile(fileName string, maxLines int) {
 		}
 		if i > 0 {
 			strLineOut = "\r\n"
+			count++
 		}
 		for j, data := range line {
 			if j > 0 {
@@ -123,5 +132,5 @@ func (pl *PlaylistRnd) WriteFile(fileName string, maxLines int) {
 			file.Write(bytes[0:])
 		}
 	}
-	log.Println("File created: ", fileName)
+	log.Printf("File created: %s with %d items", fileName, count)
 }
