@@ -39,14 +39,15 @@ func (pl *PlaylistRnd) ReadFile(fileName string) {
 				log.Printf("[%d] %s", i, item)
 			}
 		} else {
-			if lineCount > 3 {
-				break
-			}
+			// if lineCount > 30 {
+			// 	break
+			// }
 			pl.finalIx = append(pl.finalIx, lineCount)
 		}
 		pl.outLines = append(pl.outLines, line)
 		lineCount++
 	}
+	// TODO: crea il pl.finalIx in modo random
 	log.Printf("Recongnized %d songs", len(pl.outLines)-1)
 }
 
@@ -93,7 +94,7 @@ func (pl *PlaylistRnd) WriteFile(fileName string) {
 }
 
 func main() {
-	fileName := "Play-1.txt" // File format is UTF 16 LE
+	fileName := "All-title.txt" // File format is UTF 16 LE
 
 	pl := PlaylistRnd{}
 	pl.ReadFile(fileName)
