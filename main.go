@@ -13,10 +13,12 @@ import (
 
 type PlaylistRnd struct {
 	outLines [][]string
+	finalIx  []int
 }
 
 func (pl *PlaylistRnd) ReadFile(fileName string) {
 	pl.outLines = [][]string{}
+	pl.finalIx = []int{0}
 	csvFile, err := utfutil.OpenFile(fileName, utfutil.UTF16LE)
 	if err != nil {
 		log.Fatalln("Error on open utf16 file", err)
@@ -40,6 +42,7 @@ func (pl *PlaylistRnd) ReadFile(fileName string) {
 			if lineCount > 3 {
 				break
 			}
+			pl.finalIx = append(pl.finalIx, lineCount)
 		}
 		pl.outLines = append(pl.outLines, line)
 		lineCount++
@@ -66,7 +69,9 @@ func (pl *PlaylistRnd) WriteFile(fileName string) {
 	file.Write(bytes[0:])
 
 	strLineOut := ""
-	for i, line := range pl.outLines {
+	for i, lineIx := range pl.finalIx {
+		//fmt.Println(lineIx)
+		line := pl.outLines[lineIx]
 		strLineOut = ""
 		if i > 0 {
 			strLineOut = "\r\n"
