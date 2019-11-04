@@ -66,9 +66,9 @@ func (pl *PlaylistRnd) ReadFile(fileName string) {
 func (pl *PlaylistRnd) printAllComments() {
 	log.Println("Print comments")
 	for i, mm := range pl.fieldDet {
-		com := mm["Kommentar"]
+		com := mm["Kommentar"] // German filed title for comment (language is set inside itunes)
 		if com != "" {
-			log.Printf("Komment in [%d] is %q", i, com)
+			log.Printf("Comment in [%d] is %q", i+1, com)
 		}
 	}
 }
@@ -78,6 +78,10 @@ func (pl *PlaylistRnd) printFieldName() {
 	for i, item := range pl.fieldKeys {
 		log.Printf("[%d] %s", i, item)
 	}
+}
+
+func (pl *PlaylistRnd) RemoveComments() {
+
 }
 
 func (pl *PlaylistRnd) SetFinalIx(arr []int) {
