@@ -18,6 +18,11 @@ type PlaylistRnd struct {
 	fieldKeys []string
 }
 
+const (
+	fkComment = "Kommentar" // German filed title for comment (language is set inside itunes)
+	fkTitle   = "Titelname"
+)
+
 func (pl *PlaylistRnd) ReadFile(fileName string) {
 	pl.outLines = [][]string{}
 	pl.finalIx = []int{0}
@@ -43,32 +48,30 @@ func (pl *PlaylistRnd) ReadFile(fileName string) {
 				pl.fieldKeys = append(pl.fieldKeys, item)
 			}
 		} else {
-			// if lineCount > 30 {
-			// 	break
-			// }
 			mmF := make(map[string]string)
 			for i, item := range line {
 				k := pl.fieldKeys[i]
 				mmF[k] = item
 			}
 			pl.fieldDet = append(pl.fieldDet, mmF)
-			pl.finalIx = append(pl.finalIx, lineCount)
+			pl.finalIx = append(pl.finalIx, lineCount-1)
 		}
 		pl.outLines = append(pl.outLines, line)
 		lineCount++
 	}
 	// TODO: crea il pl.finalIx in modo random
-	log.Printf("Recongnized %d songs", len(pl.outLines)-1)
+	log.Printf("Recongnized %d songs", len(pl.finalIx))
 	pl.printFieldName()
-	pl.printAllComments()
+	pl.printAllComment()
 }
 
-func (pl *PlaylistRnd) printAllComments() {
-	log.Println("Print comments")
+func (pl *PlaylistRnd) printAllComment() {
+	log.Println("Print comments, if any")
 	for i, mm := range pl.fieldDet {
-		com := mm["Kommentar"] // German filed title for comment (language is set inside itunes)
+		com := mm[fkComment]
 		if com != "" {
-			log.Printf("Comment in [%d] is %q", i, com)
+			runes := []rune(mm[fkTitle])
+			log.Printf("[%q] - Comment in [%d]  is %q", string(runes[0:4]), i, com)
 		}
 	}
 }
@@ -80,10 +83,22 @@ func (pl *PlaylistRnd) printFieldName() {
 	}
 }
 
-func (pl *PlaylistRnd) RemoveComments() {
-	// for _, md := range pl.fieldDet {
+func (pl *PlaylistRnd) SelectItemsWithComment() {
+	log.Println("Selecting all items with a comment")
+	pl.finalIx = []int{}
+	for ix, md := range pl.fieldDet {
+		if md[fkComment] != "" {
+			pl.finalIx = append(pl.finalIx, ix)
+		}
+	}
+	log.Printf("Found %d items", len(pl.finalIx))
+}
 
-	// }
+func (pl *PlaylistRnd) RemoveComments() {
+	log.Println("CAUTION: removing all comments") // Ignored by itunes when imported as new playlist
+	for _, md := range pl.fieldDet {
+		md[fkComment] = ""
+	}
 }
 
 func (pl *PlaylistRnd) SetFinalIx(arr []int) {
@@ -125,7 +140,6 @@ func (pl *PlaylistRnd) WriteFile(fileName string, maxLines int) {
 			break
 		}
 		count++
-		//strLineOut = "\r\n" + pl.buildOutLineString(lineIx+1)
 		strLineOut = "\r\n" + pl.buildOutLineStringFromMap(lineIx)
 		writeStringInUtf16LEFile(file, strLineOut)
 	}
