@@ -26,6 +26,6 @@ func main() {
 	pl.ShuffleFinalIx()
 
 	pl.WriteFile(*outFile, maxLines)
-
+	log.Println("File created ", *outFile)
 	log.Println("That's all folks!")
 }
